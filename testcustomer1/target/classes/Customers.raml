@@ -1,0 +1,19 @@
+#%RAML 0.8
+title: Customers API
+version: v1.0
+baseUri: https://localhost:8081/api
+/customers:
+  get:
+    description: Fetch customers
+    queryParameters:
+      postCode:
+        type: string
+        example: 12313
+    responses:
+      200:
+
+/customers/{customer_id}:
+  get:
+    description: Fetch customer based on customer id
+    responses:
+      200:
