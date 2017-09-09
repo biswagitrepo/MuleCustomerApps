@@ -28,7 +28,6 @@ http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/
                 <db:parameterized-query><![CDATA[select * from customer;]]></db:parameterized-query>
             </db:select>
         </response>
-        <logger message="#[payload]" level="TRACE" category="#[]" doc:name="Logger"/>
         <response>
             <json:json-to-object-transformer doc:name="JSON to Object"/>
         </response>
