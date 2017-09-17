@@ -1,0 +1,29 @@
+#%RAML 0.8
+title: Customers API
+version: v1.0
+baseUri: https://mocksvc.mulesoft.com/mocks/4544879f-d145-4df1-9ea6-8c609d348092/api # baseUri: https://mocksvc.mulesoft.com/mocks/4544879f-d145-4df1-9ea6-8c609d348092/api # baseUri: https://localhost:8081/api
+/customers:
+  get:
+    description: Retrieve a list of all the Customers
+    queryParameters:
+      postCode:
+        type: string
+        example: 3561
+    responses:
+      200:
+       body: 
+        application/json:
+            example: |
+              [{"name":"First","id":12},{"name":"First1","id":1}]
+            
+/customers/{customer_id}:
+  get:
+    description: Fetch customer based on customer id
+    responses:
+      200:
+        body:
+          application/json:
+            example: |
+              [
+                { "name" : "First", "ID" : 12 }
+              ]  

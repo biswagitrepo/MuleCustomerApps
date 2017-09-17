@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+    <http:listener-config name="Customers-httpListenerConfig" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
+    <apikit:config name="Customers-config" raml="Customers.raml" consoleEnabled="false" doc:name="Router"/>
+    
+    <db:mysql-config name="MySQL_Configuration" host="103.212.120.53" port="3306" user="ztczscwy_CustMule" password="oyMMzQCT(DJv" database="ztczscwy_CustTest" doc:name="MySQL Configuration"/>
+    <db:generic-config name="Generic_Database_Configuration" url="jdbc:h2:tcp://localhost/~/test,user ='sa',password ='test'" driverClassName="org.h2.Driver" doc:name="Generic Database Configuration"/>
+    <message-filter onUnaccepted="#[payload]" name="Message" doc:name="Message">
+        <message-property-filter pattern="#[message]" caseSensitive="true" scope="invocation"/>
+    </message-filter>
+    
+    <flow name="Customers-main">
+        <http:listener config-ref="Customers-httpListenerConfig" path="/api/*" doc:name="HTTP"/>
+        <apikit:router config-ref="Customers-config" doc:name="APIkit Router"/>
+        <response>
+            <db:select config-ref="MySQL_Configuration" doc:name="Database">
+                <db:parameterized-query><![CDATA[select * from test;]]></db:parameterized-query>
+            </db:select>
+        </response>
+
+        <exception-strategy ref="Customers-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
+    </flow>
+    <flow name="Customers-console">
+        <http:listener config-ref="Customers-httpListenerConfig" path="/console/*" doc:name="HTTP"/>
+        <apikit:console config-ref="Customers-config" doc:name="APIkit Console"/>
+        <logger message="#[payload]" level="DEBUG" doc:name="Logger"/>
+        <response>
+            <logger message="#[message]" level="DEBUG" doc:name="Logger"/>
+        </response>
+        <filter ref="Message" doc:name="Filter Reference"/>
+        <response>
+            <db:select config-ref="MySQL_Configuration" doc:name="Database">
+                <db:dynamic-query><![CDATA[select * from test;]]></db:dynamic-query>
+            </db:select>
+        </response>
+        <logger message="#[]" level="DEBUG" doc:name="Logger"/>
+        <!-- choice doc:name="Choice">
+            <when expression="">
+                <set-variable variableName="value" value="firstValue" doc:name="first"/>
+            </when>
+        </choice-->
+
+    </flow>
+    <flow name="get:/customers:Customers-config">
+        <set-payload value="[{&quot;name&quot;:&quot;First&quot;,&quot;id&quot;:12},{&quot;name&quot;:&quot;First1&quot;,&quot;id&quot;:1}]" doc:name="Set Payload"/>
+    </flow>
+    <flow name="get:/customers/{customer_id}:Customers-config">
+        <set-payload value="[&#xA;  { &quot;name&quot; : &quot;First&quot;, &quot;ID&quot; : 12 }&#xA;]" doc:name="Set Payload"/>
+    </flow>
+    <apikit:mapping-exception-strategy name="Customers-apiKitGlobalExceptionMapping">
+        <apikit:mapping statusCode="404">
+            <apikit:exception value="org.mule.module.apikit.exception.NotFoundException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Resource not found&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="405">
+            <apikit:exception value="org.mule.module.apikit.exception.MethodNotAllowedException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Method not allowed&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="415">
+            <apikit:exception value="org.mule.module.apikit.exception.UnsupportedMediaTypeException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Unsupported media type&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="406">
+            <apikit:exception value="org.mule.module.apikit.exception.NotAcceptableException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Not acceptable&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+        <apikit:mapping statusCode="400">
+            <apikit:exception value="org.mule.module.apikit.exception.BadRequestException" />
+            <set-property propertyName="Content-Type" value="application/json" doc:name="Property"/>
+            <set-payload value="{ &quot;message&quot;: &quot;Bad request&quot; }" doc:name="Set Payload"/>
+        </apikit:mapping>
+    </apikit:mapping-exception-strategy>
+</mule>
