@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:spring="http://www.springframework.org/schema/beans" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
+    <flow name="newcustomersFlow">
+        <http:listener config-ref="Customers-httpListenerConfig" path="/api1/customers" allowedMethods="GET" doc:name="HTTP"/>
+        <logger message="1st API call" level="INFO" doc:name="Logger"/>
+        <set-variable variableName="postCode" value="#[message.inboundProperties.'http.query.params'.'postCode']" doc:name="Variable"/>
+        <response>
+            <json:object-to-json-transformer doc:name="Object to JSON"/>
+        </response>
+        <choice doc:name="Choice">
+            <when expression="#[flowVars.postCode=='4011']">
+                <db:select config-ref="MySQL_Configuration" doc:name="FetchCustomersBasedOnPostCode">
+                    <db:parameterized-query><![CDATA[select * from test where address contains #[flowVars.postCode]]]></db:parameterized-query>
+                </db:select>
+            </when>
+            <otherwise>
+                <db:select config-ref="MySQL_Configuration" doc:name="FetchAllCustomers">
+                    <db:parameterized-query><![CDATA[select * from test]]></db:parameterized-query>
+                </db:select>
+            </otherwise>
+        </choice>
+    </flow>
+    <flow name="newcustomersFlow1">
+        <http:listener config-ref="Customers-httpListenerConfig" path="/api1/customers/{customer_id}" doc:name="HTTP" allowedMethods="GET"/>
+        <logger message="#[message.inboundProperties.'http.uri.params'.customer_id]" level="INFO" doc:name="Logger"/>
+        <set-variable doc:name="Variable" value="#[message.inboundProperties.'http.uri.params'.customer_id]" variableName="custID"/>
+        <logger message="#[flowVars.custID]" level="INFO" doc:name="Logger"/>
+        <db:select config-ref="MySQL_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select * from test where id=#[flowVars.custID]]]></db:parameterized-query>
+        </db:select>
+        <response>
+            <json:object-to-json-transformer doc:name="Object to JSON"/>
+        </response>
+    </flow>
+</mule>

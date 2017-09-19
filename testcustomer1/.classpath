@@ -14,5 +14,9 @@
 	<classpathentry kind="src" path="src/main/wsdl"/>
 	<classpathentry kind="con" path="MUNIT_RUNTIME"/>
 	<classpathentry kind="src" output="target/test-classes" path="src/test/munit"/>
+	<classpathentry kind="lib" path="D:/ProgramFiles/Firebird_3_0/lib/jaybird-3.0.2.jar"/>
+	<classpathentry kind="lib" path="D:/ProgramFiles/Firebird_3_0/lib/jaybird-3.0.2-javadoc.jar"/>
+	<classpathentry kind="lib" path="D:/ProgramFiles/Firebird_3_0/lib/jaybird-3.0.2-sources.jar"/>
+	<classpathentry kind="lib" path="D:/ProgramFiles/Firebird_3_0/lib/jaybird-full-3.0.2.jar"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>

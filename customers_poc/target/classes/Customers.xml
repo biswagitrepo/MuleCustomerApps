@@ -6,7 +6,12 @@ http://www.springframework.org/schema/beans http://www.springframework.org/schem
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
 http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
     <http:listener-config name="Customers-httpListenerConfig" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
-    <apikit:config name="Customers-config" raml="Customers.raml" consoleEnabled="false" doc:name="Router"/>
+    <apikit:config name="Customers-config" raml="Customers.raml" consoleEnabled="true" doc:name="Router" keepRamlBaseUri="false">
+        <apikit:flow-mapping resource="/customers" action="get" flow-ref="get:/customers:Customers-config"/>
+        <apikit:flow-mapping resource="/customers/{customer_id}" action="get" flow-ref="get:/customers/{customer_id}:Customers-config"/>
+        <apikit:flow-mapping resource="/customers" action="get" flow-ref="Customers-main"/>
+        <apikit:flow-mapping resource="/customers" action="get" flow-ref="Customers-console"/>
+    </apikit:config>
     
     <db:mysql-config name="MySQL_Configuration" host="103.212.120.53" port="3306" user="ztczscwy_CustMule" password="oyMMzQCT(DJv" database="ztczscwy_CustTest" doc:name="MySQL Configuration"/>
     <db:generic-config name="Generic_Database_Configuration" url="jdbc:h2:tcp://localhost/~/test,user ='sa',password ='test'" driverClassName="org.h2.Driver" doc:name="Generic Database Configuration"/>
@@ -18,8 +23,8 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
         <http:listener config-ref="Customers-httpListenerConfig" path="/api/*" doc:name="HTTP"/>
         <apikit:router config-ref="Customers-config" doc:name="APIkit Router"/>
         <response>
-            <db:select config-ref="MySQL_Configuration" doc:name="Database">
-                <db:parameterized-query><![CDATA[select * from test;]]></db:parameterized-query>
+            <db:select config-ref="Generic_Database_Configuration" doc:name="Database">
+                <db:parameterized-query><![CDATA[select * from customers;]]></db:parameterized-query>
             </db:select>
         </response>
 
@@ -27,18 +32,13 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
     </flow>
     <flow name="Customers-console">
         <http:listener config-ref="Customers-httpListenerConfig" path="/console/*" doc:name="HTTP"/>
-        <apikit:console config-ref="Customers-config" doc:name="APIkit Console"/>
         <logger message="#[payload]" level="DEBUG" doc:name="Logger"/>
         <response>
             <logger message="#[message]" level="DEBUG" doc:name="Logger"/>
         </response>
-        <filter ref="Message" doc:name="Filter Reference"/>
-        <response>
-            <db:select config-ref="MySQL_Configuration" doc:name="Database">
-                <db:dynamic-query><![CDATA[select * from test;]]></db:dynamic-query>
-            </db:select>
-        </response>
-        <logger message="#[]" level="DEBUG" doc:name="Logger"/>
+        <db:select config-ref="Generic_Database_Configuration" doc:name="Database">
+            <db:dynamic-query><![CDATA[select * from customers;]]></db:dynamic-query>
+        </db:select>
         <!-- choice doc:name="Choice">
             <when expression="">
                 <set-variable variableName="value" value="firstValue" doc:name="first"/>
