@@ -14,7 +14,7 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
     </apikit:config>
     
     <db:mysql-config name="MySQL_Configuration" host="103.212.120.53" port="3306" user="ztczscwy_CustMule" password="oyMMzQCT(DJv" database="ztczscwy_CustTest" doc:name="MySQL Configuration"/>
-    <db:generic-config name="Generic_Database_Configuration" url="jdbc:h2:tcp://localhost/~/test,user ='MULEAPP',password ='test'" driverClassName="org.h2.Driver" doc:name="Generic Database Configuration"/>
+    <db:generic-config name="Generic_Database_Configuration" url="jdbc:h2:tcp://localhost/~/test,user ='sa',password =''" driverClassName="org.h2.Driver" doc:name="Generic Database Configuration"/>
     <ee:object-store-caching-strategy name="Caching_Strategy" doc:name="Caching Strategy">
         <in-memory-store name="InMemoryCache" maxEntries="10000" entryTTL="500" expirationInterval="26000"/>
     </ee:object-store-caching-strategy>
