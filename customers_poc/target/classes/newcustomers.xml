@@ -17,13 +17,13 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
         </response>
         <choice doc:name="Choice">
             <when expression="#[flowVars.postCode=='4011']">
-                <db:select config-ref="MySQL_Configuration" doc:name="FetchCustomersBasedOnPostCode">
-                    <db:parameterized-query><![CDATA[select * from test where address contains #[flowVars.postCode]]]></db:parameterized-query>
+                <db:select config-ref="Generic_Database_Configuration" doc:name="FetchCustomersBasedOnPostCode">
+                    <db:parameterized-query><![CDATA[select * from customers where address contains #[flowVars.postCode]]]></db:parameterized-query>
                 </db:select>
             </when>
             <otherwise>
-                <db:select config-ref="MySQL_Configuration" doc:name="FetchAllCustomers">
-                    <db:parameterized-query><![CDATA[select * from test]]></db:parameterized-query>
+                <db:select config-ref="Generic_Database_Configuration" doc:name="FetchAllCustomers">
+                    <db:parameterized-query><![CDATA[select * from customers]]></db:parameterized-query>
                 </db:select>
             </otherwise>
         </choice>
@@ -33,8 +33,8 @@ http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/jso
         <logger message="#[message.inboundProperties.'http.uri.params'.customer_id]" level="INFO" doc:name="Logger"/>
         <set-variable doc:name="Variable" value="#[message.inboundProperties.'http.uri.params'.customer_id]" variableName="custID"/>
         <logger message="#[flowVars.custID]" level="INFO" doc:name="Logger"/>
-        <db:select config-ref="MySQL_Configuration" doc:name="Database">
-            <db:parameterized-query><![CDATA[select * from test where id=#[flowVars.custID]]]></db:parameterized-query>
+        <db:select config-ref="Generic_Database_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[select * from customers where id=#[flowVars.custID]]]></db:parameterized-query>
         </db:select>
         <response>
             <json:object-to-json-transformer doc:name="Object to JSON"/>

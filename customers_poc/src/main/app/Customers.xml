@@ -1,32 +1,33 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<mule xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:json="http://www.mulesoft.org/schema/mule/json" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns:tracking="http://www.mulesoft.org/schema/mule/ee/tracking" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:apikit="http://www.mulesoft.org/schema/mule/apikit" xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/apikit http://www.mulesoft.org/schema/mule/apikit/current/mule-apikit.xsd
 http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-3.1.xsd
 http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
-http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd">
+http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/mule/ee/tracking/current/mule-tracking-ee.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/json http://www.mulesoft.org/schema/mule/json/current/mule-json.xsd">
     <http:listener-config name="Customers-httpListenerConfig" host="0.0.0.0" port="8081" doc:name="HTTP Listener Configuration"/>
     <apikit:config name="Customers-config" raml="Customers.raml" consoleEnabled="true" doc:name="Router" keepRamlBaseUri="false">
         <apikit:flow-mapping resource="/customers" action="get" flow-ref="get:/customers:Customers-config"/>
         <apikit:flow-mapping resource="/customers/{customer_id}" action="get" flow-ref="get:/customers/{customer_id}:Customers-config"/>
-        <apikit:flow-mapping resource="/customers" action="get" flow-ref="Customers-main"/>
-        <apikit:flow-mapping resource="/customers" action="get" flow-ref="Customers-console"/>
     </apikit:config>
     
     <db:mysql-config name="MySQL_Configuration" host="103.212.120.53" port="3306" user="ztczscwy_CustMule" password="oyMMzQCT(DJv" database="ztczscwy_CustTest" doc:name="MySQL Configuration"/>
-    <db:generic-config name="Generic_Database_Configuration" url="jdbc:h2:tcp://localhost/~/test,user ='sa',password ='test'" driverClassName="org.h2.Driver" doc:name="Generic Database Configuration"/>
-    <message-filter onUnaccepted="#[payload]" name="Message" doc:name="Message">
-        <message-property-filter pattern="#[message]" caseSensitive="true" scope="invocation"/>
-    </message-filter>
+    <db:generic-config name="Generic_Database_Configuration" url="jdbc:h2:tcp://localhost/~/test,user ='MULEAPP',password ='test'" driverClassName="org.h2.Driver" doc:name="Generic Database Configuration"/>
+    <ee:object-store-caching-strategy name="Caching_Strategy" doc:name="Caching Strategy">
+        <in-memory-store name="InMemoryCache" maxEntries="10000" entryTTL="500" expirationInterval="26000"/>
+    </ee:object-store-caching-strategy>
     
     <flow name="Customers-main">
-        <http:listener config-ref="Customers-httpListenerConfig" path="/api/*" doc:name="HTTP"/>
+        <http:listener config-ref="Customers-httpListenerConfig" path="/api/*" doc:name="HTTP" allowedMethods="GET"/>
         <apikit:router config-ref="Customers-config" doc:name="APIkit Router"/>
-        <response>
-            <db:select config-ref="Generic_Database_Configuration" doc:name="Database">
-                <db:parameterized-query><![CDATA[select * from customers;]]></db:parameterized-query>
-            </db:select>
-        </response>
+        <logger message="#[payload]" level="INFO" doc:name="Logger"/>
+        <idempotent-message-filter idExpression="#[message.inboundProperties.'http.uri.params'.customer_id]" throwOnUnaccepted="true" storePrefix="Idempotent_Message" doc:name="Idempotent Message">
+
+            <in-memory-store name="InMemoryIdempotentFilter" maxEntries="60000" entryTTL="1200" expirationInterval="16000"/>
+
+        </idempotent-message-filter>
 
         <exception-strategy ref="Customers-apiKitGlobalExceptionMapping" doc:name="Reference Exception Strategy"/>
     </flow>
@@ -37,7 +38,7 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
             <logger message="#[message]" level="DEBUG" doc:name="Logger"/>
         </response>
         <db:select config-ref="Generic_Database_Configuration" doc:name="Database">
-            <db:dynamic-query><![CDATA[select * from customers;]]></db:dynamic-query>
+            <db:dynamic-query><![CDATA[SELECT * FROM INFORMATION_SCHEMA.COLLATIONS]]></db:dynamic-query>
         </db:select>
         <!-- choice doc:name="Choice">
             <when expression="">
@@ -47,10 +48,19 @@ http://www.mulesoft.org/schema/mule/ee/tracking http://www.mulesoft.org/schema/m
 
     </flow>
     <flow name="get:/customers:Customers-config">
-        <set-payload value="[{&quot;name&quot;:&quot;First&quot;,&quot;id&quot;:12},{&quot;name&quot;:&quot;First1&quot;,&quot;id&quot;:1}]" doc:name="Set Payload"/>
+        <db:select config-ref="Generic_Database_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[SELECT * FROM INFORMATION_SCHEMA.COLLATIONS]]></db:parameterized-query>
+        </db:select>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
+
     </flow>
     <flow name="get:/customers/{customer_id}:Customers-config">
-        <set-payload value="[&#xA;  { &quot;name&quot; : &quot;First&quot;, &quot;ID&quot; : 12 }&#xA;]" doc:name="Set Payload"/>
+        <logger message="#[message.inboundProperties.'http.uri.params'.customer_id]" level="INFO" doc:name="PrintCustomerInfo"/>
+        <set-variable variableName="customer_id" value="#[message.inboundProperties.'http.uri.params'.customer_id]" doc:name="SetCustomerID"/>
+        <db:select config-ref="Generic_Database_Configuration" doc:name="Database">
+            <db:parameterized-query><![CDATA[SELECT * FROM INFORMATION_SCHEMA.COLLATIONS where key = #[flowVars.customer_id]]]></db:parameterized-query>
+        </db:select>
+        <json:object-to-json-transformer doc:name="Object to JSON"/>
     </flow>
     <apikit:mapping-exception-strategy name="Customers-apiKitGlobalExceptionMapping">
         <apikit:mapping statusCode="404">

@@ -11,7 +11,7 @@
 	<classpathentry kind="src" path="src/main/wsdl"/>
 	<classpathentry kind="lib" path="D:/ProgramFiles/H2/bin/h2.jar"/>
 	<classpathentry kind="con" path="MUNIT_RUNTIME"/>
-	<classpathentry kind="src" output="target/test-classes" path="src/test/munit"/>
 	<classpathentry kind="lib" path="D:/ProgramFiles/MySql/com.mysql.jdbc_5.1.5.jar"/>
+	<classpathentry kind="src" output="target/test-classes" path="src/test/munit"/>
 	<classpathentry kind="output" path="target/classes"/>
 </classpath>
