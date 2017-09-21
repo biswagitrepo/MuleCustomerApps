@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:munit="http://www.mulesoft.org/schema/mule/munit" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:spring="http://www.springframework.org/schema/beans" xmlns:core="http://www.mulesoft.org/schema/mule/core" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/munit http://www.mulesoft.org/schema/mule/munit/current/mule-munit.xsd
+http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-current.xsd
+http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd">
+    <munit:config name="munit" doc:name="MUnit configuration"/>
+    <munit:config doc:name="Munit configuration"/>
+    <munit:config doc:name="Munit configuration" mock-connectors="false" mock-inbounds="false"/>
+    <spring:beans>
+        <spring:import resource="classpath:newcustomers.xml"/>
+        <spring:import resource="classpath:Customers.xml"/>
+    </spring:beans>
+    <munit:test name="new-test-suite-newcustomersFlowTest" description="Test">
+        <flow-ref name="newcustomersFlow" doc:name="Flow-ref to newcustomersFlow"/>
+    </munit:test>
+    <munit:test name="new-test-suite-newcustomersFlow1Test" description="Test">
+        <flow-ref name="newcustomersFlow1" doc:name="Flow-ref to newcustomersFlow1"/>
+    </munit:test>
+    <munit:test name="new-test-suite-Customers-mainTest" description="Test">
+        <flow-ref name="Customers-main" doc:name="Flow-ref to Customers-main"/>
+    </munit:test>
+    <munit:test name="new-test-suite-Customers-consoleTest" description="Test">
+        <flow-ref name="Customers-console" doc:name="Flow-ref to Customers-console"/>
+    </munit:test>
+    <munit:test name="new-test-suite-get:/customers:Customers-configTest" description="Test">
+        <flow-ref name="get:/customers:Customers-config" doc:name="Flow-ref to get:/customers:Customers-config"/>
+    </munit:test>
+    <munit:test name="new-test-suite-get:/customers/{customer_id}:Customers-configTest" description="Test">
+        <flow-ref name="get:/customers/{customer_id}:Customers-config" doc:name="Flow-ref to get:/customers/{customer_id}:Customers-config"/>
+    </munit:test>
+</mule>
